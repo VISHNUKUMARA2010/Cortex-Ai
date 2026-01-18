@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: cortex-ai-app
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "streamlit run AI.py --server.port 10000 --server.address 0.0.0.0"
+    envVars:
+      - key: HACKCLUB_API_KEY
+        sync: false
