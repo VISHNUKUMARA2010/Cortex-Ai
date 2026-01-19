@@ -5,20 +5,9 @@ import os
 from typing import Any
 import io
 import base64
-
-# OpenRouter API Key
-OPENROUTER_API_KEY = ""
-
-# Hack Club API Key
-HACKCLUB_API_KEY = ""
-
-# Always use this key unless overridden by environment variable
-def get_openrouter_api_key():
-    return os.getenv('OPENROUTER_API_KEY') or OPENROUTER_API_KEY
-
-
-
 def get_hackclub_api_key():
+    # Fallback to a default value if not set in environment
+    HACKCLUB_API_KEY = None
     return os.getenv('HACKCLUB_API_KEY') or HACKCLUB_API_KEY
 
 import streamlit as st
@@ -37,7 +26,7 @@ except ImportError:
 
 
 
-st.set_page_config(page_title='ChatGPT Dashboard', layout='wide', page_icon='🤖')
+st.set_page_config(page_title='Cortex Ai', layout='wide', page_icon='🤖')
 
 HISTORY_FILE = Path(__file__).with_name('chat_history.json')
 SETTINGS_FILE = Path(__file__).with_name('user_settings.json')
@@ -113,7 +102,7 @@ def build_ribbon(points, width=0.18, n_segments=200):
     right = points - normals * (width/2)
     # build polygon strips per segment for gradient coloring
     polys = []
-    tvals = np.linspace(0, 1, len(points))
+    tvals = np.linspace(0, 1, len(points), False)
     for i in range(len(points)-1):
         quad = np.array([ left[i], left[i+1], right[i+1], right[i] ])
         polys.append((quad, tvals[i]))
@@ -130,7 +119,7 @@ def plot_rainbow_ribbon(ax, polys, cmap_name='hsv'):
 
 def generate_logo_base64():
     # parameter t
-    t = np.linspace(0, 2*np.pi, 600)
+    t = np.linspace(0, 2*np.pi, 600, False)
     pts = lemniscate(t, a=1.2)
 
     # rotate and scale a bit to match aesthetic
@@ -175,35 +164,86 @@ LOGO_URL = f"data:image/png;base64,{LOGO_BASE64}"
 
 def get_theme_styles(theme='dark'):
     """Get theme-specific CSS styles"""
-    if theme == 'black':
+    if theme == 'transparent':
         return '''
+        @keyframes gradientBG {
+            0% {background-position: 0% 50%;}
+            50% {background-position: 100% 50%;}
+            100% {background-position: 0% 50%;}
+        }
         .stApp {
-            background-color: #000000 !important;
+            background: linear-gradient(120deg, rgba(34,193,195,0.35) 0%, rgba(253,187,45,0.25) 100%, rgba(131,58,180,0.25) 60%);
+            background-size: 200% 200%;
+            animation: gradientBG 12s ease infinite;
+            color: #22223b !important;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
         }
         .stSidebar {
-            background-color: #0a0a0a !important;
+            background: rgba(255,255,255,0.18) !important;
+            border: 1.5px solid rgba(255,255,255,0.22) !important;
+            box-shadow: 0 8px 32px 0 rgba(31,38,135,0.12) !important;
+            backdrop-filter: blur(24px) !important;
+            transition: background 0.5s, box-shadow 0.5s;
         }
         .stSidebar .stMarkdown {
-            color: #ffffff !important;
+            color: #22223b !important;
         }
         .stChatMessage {
-            background-color: #1a1a1a !important;
-            color: #ffffff !important;
+            background: rgba(255,255,255,0.22) !important;
+            color: #22223b !important;
+            border-radius: 22px !important;
+            border: 1.5px solid rgba(255,255,255,0.32) !important;
+            box-shadow: 0 8px 32px 0 rgba(31,38,135,0.12) !important;
+            backdrop-filter: blur(32px) !important;
+            transition: background 0.5s, box-shadow 0.5s;
         }
-        .stTextInput input {
-            background-color: #1a1a1a !important;
-            color: #ffffff !important;
-            border-color: #333333 !important;
+        .stChatMessage:hover {
+            background: rgba(255,255,255,0.32) !important;
+            box-shadow: 0 12px 40px 0 rgba(31,38,135,0.18) !important;
+        }
+        .stTextInput input, .stChatInput textarea {
+            background: rgba(255,255,255,0.22) !important;
+            color: #22223b !important;
+            border-color: rgba(255,255,255,0.32) !important;
+            backdrop-filter: blur(18px) !important;
+            border-radius: 12px !important;
+            font-size: 1.08rem !important;
+            transition: background 0.5s, box-shadow 0.5s;
+        }
+        .stTextInput input:focus, .stChatInput textarea:focus {
+            background: rgba(255,255,255,0.32) !important;
+            box-shadow: 0 0 0 2px #a78bfa44 !important;
         }
         .stSelectbox select {
-            background-color: #1a1a1a !important;
-            color: #ffffff !important;
-            border-color: #333333 !important;
+            background: rgba(255,255,255,0.22) !important;
+            color: #22223b !important;
+            border-color: rgba(255,255,255,0.32) !important;
+            backdrop-filter: blur(18px) !important;
+            border-radius: 12px !important;
         }
         .stButton button {
-            background-color: #1a1a1a !important;
-            color: #ffffff !important;
-            border-color: #333333 !important;
+            background: linear-gradient(90deg, #a78bfa 0%, #43e97b 100%) !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            box-shadow: 0 2px 12px 0 rgba(67,233,123,0.12) !important;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .stButton button:hover {
+            background: linear-gradient(90deg, #43e97b 0%, #a78bfa 100%) !important;
+            box-shadow: 0 4px 24px 0 rgba(67,233,123,0.18) !important;
+        }
+        .stChatInput {
+            background: rgba(255,255,255,0.22) !important;
+            border-radius: 16px !important;
+            border: 1.5px solid rgba(255,255,255,0.32) !important;
+            box-shadow: 0 8px 32px 0 rgba(31,38,135,0.12) !important;
+            backdrop-filter: blur(32px) !important;
+            transition: background 0.5s, box-shadow 0.5s;
+        }
+        .stChatInputContainer {
+            background: transparent !important;
         }
         '''
     else:  # default dark theme
@@ -564,9 +604,9 @@ if 'rename_input' not in st.session_state:
 saved_settings = load_user_settings()
 
 if 'backend' not in st.session_state:
-    st.session_state.backend = saved_settings.get('backend', 'openrouter')
+    st.session_state.backend = saved_settings.get('backend', 'hackclub')
 if 'model_name' not in st.session_state:
-    st.session_state.model_name = saved_settings.get('model_name', 'openai/gpt-3.5-turbo')
+    st.session_state.model_name = saved_settings.get('model_name', 'hackclub/model1')
 if 'theme' not in st.session_state:
     st.session_state.theme = saved_settings.get('theme', 'dark')
 
@@ -737,7 +777,7 @@ if st.session_state.show_settings:
             
             # Theme selection
             st.markdown("### Theme Settings")
-            theme_options = ['dark', 'black']
+            theme_options = ['dark', 'transparent']
             current_theme_index = 0
             if st.session_state.theme in theme_options:
                 current_theme_index = theme_options.index(st.session_state.theme)
@@ -754,70 +794,28 @@ if st.session_state.show_settings:
             
             # Backend configuration
             st.markdown("### AI Model Configuration")
-            
-            backend_options = ['openrouter', 'hackclub']
-            
-            if backend_options:
-                new_backend = st.selectbox('Backend', backend_options, 
-                                     index=backend_options.index(st.session_state.backend) if st.session_state.backend in backend_options else 0,
-                                     key="backend_selection")
-                if new_backend != st.session_state.backend:
-                    st.session_state.backend = new_backend
-                    save_current_settings()
-                
-                # Model selection for OpenRouter
-                if st.session_state.backend == 'openrouter':
-                    st.markdown("### OpenRouter Models")
-                    model_options = {
-                        'openai/gpt-3.5-turbo': '🤖 GPT-3.5 Turbo',
-                        'anthropic/claude-3-haiku': '🧠 Claude 3 Haiku', 
-                        'meta-llama/llama-3.1-8b-instruct': '🦙 Llama 3.1 8B',
-                        'openai/gpt-oss-120b': '🛰️ GPT-OSS 120B'
-                    }
-                    model_keys = list(model_options.keys())
-                    model_labels = list(model_options.values())
-                    current_index = 0
-                    if st.session_state.model_name in model_keys:
-                        current_index = model_keys.index(st.session_state.model_name)
-                    selected_label = st.radio(
-                        'Select AI Model',
-                        model_labels,
-                        index=current_index,
-                        key="model_selection",
-                        horizontal=True
-                    )
-                    selected_index = model_labels.index(selected_label)
-                    new_model = model_keys[selected_index]
-                    if new_model != st.session_state.model_name:
-                        st.session_state.model_name = new_model
-                        save_current_settings()
-                # Model selection for Hugging Face
-
-                # Model selection for Hack Club
-                elif st.session_state.backend == 'hackclub':
-                    st.markdown("### Hack Club Models")
-                    hc_models = {
-                        'hackclub/model1': '🔧 Hack Club Model 1',
-                        'hackclub/model2': '🔨 Hack Club Model 2'
-                    }
-                    hc_keys = list(hc_models.keys())
-                    hc_labels = list(hc_models.values())
-                    current_index = 0
-                    if st.session_state.model_name in hc_keys:
-                        current_index = hc_keys.index(st.session_state.model_name)
-                    selected_label = st.radio(
-                        'Select Hack Club Model',
-                        hc_labels,
-                        index=current_index,
-                        key="hc_model_selection",
-                        horizontal=True
-                    )
-                    selected_index = hc_labels.index(selected_label)
-                    new_model = hc_keys[selected_index]
-                    if new_model != st.session_state.model_name:
-                        st.session_state.model_name = new_model
-                        save_current_settings()
-            
+            st.markdown("### Hack Club Models")
+            hc_models = {
+                'hackclub/model1': '🔧 Hack Club Model 1',
+                'hackclub/model2': '🔨 Hack Club Model 2'
+            }
+            hc_keys = list(hc_models.keys())
+            hc_labels = list(hc_models.values())
+            current_index = 0
+            if st.session_state.model_name in hc_keys:
+                current_index = hc_keys.index(st.session_state.model_name)
+            selected_label = st.radio(
+                'Select Hack Club Model',
+                hc_labels,
+                index=current_index,
+                key="hc_model_selection",
+                horizontal=True
+            )
+            selected_index = hc_labels.index(selected_label)
+            new_model = hc_keys[selected_index]
+            if new_model != st.session_state.model_name:
+                st.session_state.model_name = new_model
+                save_current_settings()
 
             st.markdown("---")
             st.markdown("### Conversation Management")
@@ -858,7 +856,6 @@ elif not st.session_state.show_settings:
     # Chat input
     if prompt := st.chat_input('Send a message'):
         st.session_state.messages.append({'role': 'user', 'content': prompt})
-        
         # Build context with profile information
         profile_context = ""
         if (st.session_state.profile_name or st.session_state.profile_email or 
@@ -872,9 +869,7 @@ elif not st.session_state.show_settings:
                 profile_parts.append(f"my phone number is {st.session_state.profile_mobile}")
             if st.session_state.profile_address:
                 profile_parts.append(f"my address is {st.session_state.profile_address}")
-            
             profile_context = f"User Profile: {', '.join(profile_parts)}. "
-        
         # Prepare messages with profile context for AI
         messages_for_ai = st.session_state.messages.copy()
         if profile_context:
@@ -886,78 +881,40 @@ elif not st.session_state.show_settings:
             messages_for_ai = [system_message] + messages_for_ai[-3:]  # System + last 3 messages
         else:
             messages_for_ai = messages_for_ai[-3:]  # Just last 3 messages
-        
         full_response = ''
         try:
-            if st.session_state.backend == 'openrouter':
-                if OPENAI_AVAILABLE and openai is not None:
-                    api_key = get_openrouter_api_key()
-                    if not api_key:
-                        full_response = "⚠️ OpenRouter API key not configured."
-                    else:
-                        client = openai.OpenAI(
-                            api_key=api_key,
-                            base_url="https://openrouter.ai/api/v1"
-                        )
-                        # Format messages for OpenAI API compatibility
-                        formatted_messages = []
-                        for msg in messages_for_ai:
-                            formatted_messages.append({
-                                "role": msg["role"],
-                                "content": msg["content"]
-                            })
-
-                        response = client.chat.completions.create(
-                            model=st.session_state.model_name,
-                            messages=formatted_messages
-                        )
-                        full_response = response.choices[0].message.content
-                else:
-                    full_response = "⚠️ OpenAI library not installed. Run: pip install openai"
-            
-
-            
-            elif st.session_state.backend == 'hackclub':
-                try:
-                    from openrouter import OpenRouter
-                except ImportError:
-                    OpenRouter = None
-                if OpenRouter is None:
-                    full_response = "⚠️ openrouter library not installed. Run: pip install openrouter"
-                else:
-                    api_key = get_hackclub_api_key()
-                    if not api_key:
-                        full_response = "⚠️ Hack Club API key not configured. Set the HACKCLUB_API_KEY environment variable."
-                    else:
-                        client = OpenRouter(
-                            api_key=api_key,
-                            server_url="https://ai.hackclub.com/proxy/v1"
-                        )
-                        formatted_messages = []
-                        for msg in messages_for_ai:
-                            formatted_messages.append({
-                                "role": msg["role"],
-                                "content": msg["content"]
-                            })
-                        try:
-                            response = client.chat.send(
-                                model=st.session_state.model_name,
-                                messages=formatted_messages,
-                                stream=False
-                            )
-                            if hasattr(response, 'choices') and response.choices and hasattr(response.choices[0], 'message'):
-                                full_response = response.choices[0].message.content
-                            else:
-                                full_response = f"❌ Hack Club API: Unexpected response: {response}"
-                        except Exception as e:
-                            full_response = f"❌ Hack Club API error: {type(e).__name__}: {str(e)}"
-            
+            from openrouter import OpenRouter
+        except ImportError:
+            OpenRouter = None
+        if OpenRouter is None:
+            full_response = "⚠️ openrouter library not installed. Run: pip install openrouter"
+        else:
+            api_key = get_hackclub_api_key()
+            if not api_key:
+                full_response = "⚠️ Hack Club API key not configured. Set the HACKCLUB_API_KEY environment variable."
             else:
-                full_response = "⚠️ Unknown backend selected. Please choose OpenRouter."
-            
-        except Exception as e:
-            full_response = f"❌ Error: {str(e)}\n\nPlease check your configuration and try again."
-        
+                client = OpenRouter(
+                    api_key=api_key,
+                    server_url="https://ai.hackclub.com/proxy/v1"
+                )
+                formatted_messages = []
+                for msg in messages_for_ai:
+                    formatted_messages.append({
+                        "role": msg["role"],
+                        "content": msg["content"]
+                    })
+                try:
+                    response = client.chat.send(
+                        model=st.session_state.model_name,
+                        messages=formatted_messages,
+                        stream=False
+                    )
+                    if hasattr(response, 'choices') and response.choices and hasattr(response.choices[0], 'message'):
+                        full_response = response.choices[0].message.content
+                    else:
+                        full_response = f"❌ Hack Club API: Unexpected response: {response}"
+                except Exception as e:
+                    full_response = f"❌ Hack Club API error: {type(e).__name__}: {str(e)}"
         # Always append assistant response to messages
         st.session_state.messages.append({'role': 'assistant', 'content': full_response})
         st.rerun()
