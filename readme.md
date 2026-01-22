@@ -24,15 +24,6 @@ A modern AI chatbot application built with Streamlit, featuring multiple AI mode
 - 🎨 **Theme Support** - Dark and Black themes
 - 💾 **Persistent Settings** - All preferences saved automatically
 
-## 🚀 Deploy on Render
-
-1. Push your code to GitHub
-2. Go to [Render Dashboard](https://dashboard.render.com)
-3. Click **New** → **Web Service**
-4. Connect your GitHub repository
-5. Render will auto-detect `render.yaml` configuration
-6. Click **Create Web Service**
-
 ## 🛠️ Local Development
 
 ```bash
@@ -51,4 +42,5 @@ A modern AI chatbot with multiple model support via OpenRouter.
 - 🤖 Multiple AI models (GPT-3.5, Claude 3, Llama 3.1)
 - 💾 Conversation history
 - 👤 User profiles
+
 - 🎨 Dark/Black themes
